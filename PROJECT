@@ -1,0 +1,10 @@
+domain: example.com
+repo: skydive
+resources:
+- group: skydive
+  kind: SkydiveAgents
+  version: v1beta1
+- group: skydive
+  kind: SkydiveAnalyzer
+  version: v1beta1
+version: "2"

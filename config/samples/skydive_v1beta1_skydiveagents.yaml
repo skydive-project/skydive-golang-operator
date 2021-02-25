@@ -1,0 +1,4 @@
+apiVersion: skydive.example.com/v1beta1
+kind: SkydiveAgents
+metadata:
+  name: skydiveagents-sample

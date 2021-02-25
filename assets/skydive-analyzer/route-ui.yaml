@@ -1,0 +1,15 @@
+# Route for Skydive UI
+apiVersion: v1
+kind: Route
+metadata:
+  labels:
+    app: skydive-analyzer
+  name: skydive-ui
+spec:
+  port:
+    targetPort: ui
+  to:
+    kind: Service
+    name: skydive-ui
+    weight: 100
+  wildcardPolicy: None

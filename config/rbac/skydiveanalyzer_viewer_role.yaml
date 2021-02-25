@@ -1,0 +1,20 @@
+# permissions for end users to view skydiveanalyzers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: skydiveanalyzer-viewer-role
+rules:
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydiveanalyzers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydiveanalyzers/status
+  verbs:
+  - get

@@ -1,0 +1,24 @@
+# permissions for end users to edit skydiveagents.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: skydiveagents-editor-role
+rules:
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydiveagents
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydiveagents/status
+  verbs:
+  - get
