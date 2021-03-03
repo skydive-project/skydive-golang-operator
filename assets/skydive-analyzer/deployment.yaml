@@ -66,12 +66,6 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
-        - image: skydive/skydive-ui
-          name: skydive-ui
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
-              protocol: TCP
         - image: elasticsearch:7.10.1
           name: skydive-elasticsearch
           imagePullPolicy: IfNotPresent

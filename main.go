@@ -26,7 +26,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	skydivev1beta1 "skydive/api/v1beta1"
+	skydivev1 "skydive/api/v1"
 	"skydive/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -39,7 +39,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = skydivev1beta1.AddToScheme(scheme)
+	_ = skydivev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -66,20 +66,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.SkydiveAgentsReconciler{
+	if err = (&controllers.SkydiveSuiteReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("SkydiveAgents"),
+		Log:    ctrl.Log.WithName("controllers").WithName("SkydiveSuite"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "SkydiveAgents")
-		os.Exit(1)
-	}
-	if err = (&controllers.SkydiveAnalyzerReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("SkydiveAnalyzer"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "SkydiveAnalyzer")
+		setupLog.Error(err, "unable to create controller", "controller", "SkydiveSuite")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

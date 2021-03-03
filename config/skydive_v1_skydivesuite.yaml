@@ -1,0 +1,12 @@
+apiVersion: skydive.example.com/v1
+kind: SkydiveSuite
+metadata:
+  name: skydivesuite-sample
+spec:
+  namespace: skydive
+  enable:
+    analyzer: true
+    agents: true
+    route: true
+  logging:
+    level: "INFO"

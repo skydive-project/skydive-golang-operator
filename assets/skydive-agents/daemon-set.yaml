@@ -32,10 +32,6 @@ spec:
           image: skydive/skydive
           imagePullPolicy: Always
           name: skydive-agent
-          ports:
-            - containerPort: 8081
-              hostPort: 8081
-              protocol: TCP
           securityContext:
             privileged: true
           volumeMounts:

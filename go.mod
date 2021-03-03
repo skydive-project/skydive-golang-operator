@@ -6,8 +6,8 @@ require (
 	github.com/go-logr/logr v0.3.0
 	github.com/imdario/mergo v0.3.10
 	github.com/kr/pretty v0.2.1 // indirect
-	github.com/onsi/ginkgo v1.14.1 // indirect
-	github.com/onsi/gomega v1.10.2 // indirect
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.2
 	github.com/openshift/api v0.0.0-20200722170803-0ba2c3658da6
 	github.com/openshift/client-go v0.0.0-20200722173614-5a1b0aaeff15
 	github.com/pkg/errors v0.9.1
