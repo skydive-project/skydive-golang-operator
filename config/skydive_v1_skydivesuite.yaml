@@ -7,6 +7,7 @@ spec:
   enable:
     analyzer: true
     agents: true
-    route: true
+    route: false
+    flowExporter: false
   logging:
     level: "INFO"

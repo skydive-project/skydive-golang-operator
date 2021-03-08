@@ -44,6 +44,10 @@ type EnableSpec struct {
 	// +optional
 	// +kubebuilder:default=false
 	Route bool `json:"route,omitempty"`
+
+	// +optional
+	// +kubebuilder:default=true
+	FlowExporter bool `json:"flowExporter,omitempty"`
 }
 
 type LoggingSpec struct {

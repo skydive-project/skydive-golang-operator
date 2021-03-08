@@ -35,6 +35,7 @@ var (
 	SkydiveAnalyzerDeployment = "skydive-analyzer/deployment.yaml"
 	SkydiveAnalyzerRoute      = "skydive-analyzer/route.yaml"
 	SkydiveAnalyzerService    = "skydive-analyzer/service.yaml"
+	SkydiveFlowExporter       = "flow-exporter/deployment.yaml"
 )
 
 // SkydiveSuiteReconciler reconciles a SkydiveSuite object
@@ -82,7 +83,7 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		err = kclient_instance.CreateOrUpdateDeployment(dep)
 		if err != nil {
-			return ctrl.Result{}, errors.Wrap(err, "Deployment creation has failed")
+			return ctrl.Result{}, errors.Wrap(err, "Skydive analyzer deployment creation has failed")
 		}
 
 		svc, err := kclient.NewService(assets.MustNewAssetReader(SkydiveAnalyzerService))
@@ -99,18 +100,18 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if skydive_suite.Spec.Enable.Route {
 			route, err := kclient.NewRoute(assets.MustNewAssetReader(SkydiveAnalyzerRoute))
 			if err != nil {
-				return ctrl.Result{}, errors.Wrap(err, "initializing skydive-analyzer Route failed")
+				log.Error(err, "initializing skydive-analyzer Route failed")
 			}
 			route.Namespace = skydive_suite.Spec.Namespace
 
 			err = kclient_instance.CreateRouteIfNotExists(route)
 			if err != nil {
-				return ctrl.Result{}, errors.Wrap(err, "Route creation has failed")
+				log.Error(err, "Route creation has failed")
 			}
 
 			_, err = kclient_instance.WaitForRouteReady(route)
 			if err != nil {
-				return ctrl.Result{}, errors.Wrap(err, "waiting for Skydive Route to become ready failed")
+				log.Error(err, "waiting for Skydive Route to become ready failed")
 			}
 		}
 
@@ -118,16 +119,44 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Creating skydive Agents
 	if skydive_suite.Spec.Enable.Agents {
-
 		ds, err := kclient.NewDaemonSet(assets.MustNewAssetReader(SkydiveAgentsDaemonSet))
 		if err != nil {
 			return ctrl.Result{}, errors.Wrap(err, "initializing skydive-agents DaemonSet failed")
 		}
 		ds.Namespace = skydive_suite.Spec.Namespace
-
+		for _, container := range ds.Spec.Template.Spec.Containers {
+			for _, env := range container.Env {
+				switch env.Name {
+				case "SKYDIVE_LOGGING_LEVEL":
+					env.Value = skydive_suite.Spec.Logging.Level
+				}
+			}
+		}
 		err = kclient_instance.CreateOrUpdateDaemonSet(ds)
 		if err != nil {
-			return ctrl.Result{}, errors.Wrap(err, "UI-Route creation has failed")
+			return ctrl.Result{}, errors.Wrap(err, "DaemonSet creation failed")
+		}
+	}
+
+	if skydive_suite.Spec.Enable.FlowExporter {
+		dep, err := kclient.NewDeployment(assets.MustNewAssetReader(SkydiveFlowExporter))
+		if err != nil {
+			log.Error(err, "initializing skydive flow-exporter Deployment failed")
+			return ctrl.Result{}, errors.Wrap(err, "initializing skydive flow-exporter Deployment failed")
+		}
+		dep.Namespace = skydive_suite.Spec.Namespace
+		for _, container := range dep.Spec.Template.Spec.Containers {
+			for _, env := range container.Env {
+				switch env.Name {
+				case "SKYDIVE_LOGGING_LEVEL":
+					env.Value = skydive_suite.Spec.Logging.Level
+				}
+			}
+		}
+
+		err = kclient_instance.CreateOrUpdateDeployment(dep)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Flow exporter deployment creation has failed")
 		}
 	}
 

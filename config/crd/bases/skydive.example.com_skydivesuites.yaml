@@ -44,6 +44,9 @@ spec:
                   analyzer:
                     default: true
                     type: boolean
+                  flowExporter:
+                    default: true
+                    type: boolean
                   route:
                     default: false
                     type: boolean
