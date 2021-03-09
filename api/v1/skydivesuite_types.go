@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +30,52 @@ type SkydiveSuiteSpec struct {
 
 	Enable EnableSpec `json:"enable"`
 
-	Logging LoggingSpec `json:"logging"`
+	Agents AgentsSpec `json:"agents"`
+
+	Analyzer AnalyzerSpec `json:"analyzer"`
+
+	FlowExporter FlowExporterSpec `json:"flowExporter"`
+}
+
+type AgentsSpec struct {
+	DaemonSet AgentsDaemonSetSpec `json:"daemonSet"`
+}
+
+type AnalyzerSpec struct {
+	Deployment AnalyzerDeploymentSpec `json:"deployment"`
+}
+
+type FlowExporterSpec struct {
+	Deployment FlowExporterDeploymentSpec `json:"deployment"`
+}
+
+type AgentsDaemonSetSpec struct {
+
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
+}
+
+type AnalyzerDeploymentSpec struct {
+
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
+}
+
+type FlowExporterDeploymentSpec struct {
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
 }
 
 type EnableSpec struct {
@@ -48,12 +94,6 @@ type EnableSpec struct {
 	// +optional
 	// +kubebuilder:default=true
 	FlowExporter bool `json:"flowExporter,omitempty"`
-}
-
-type LoggingSpec struct {
-	// +optional
-	// +kubebuilder:default="INFO"
-	Level string `json:"level,omitempty"`
 }
 
 // SkydiveSuiteStatus defines the observed state of SkydiveSuite

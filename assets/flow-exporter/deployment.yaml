@@ -22,8 +22,4 @@ spec:
         - image: skydive/skydive-flow-exporter
           imagePullPolicy: Always
           name: skydive-flow-exporter
-          env:
-            - name: SKYDIVE_LOGGING_LEVEL
-              value: ${SKYDIVE_LOGGING_LEVEL}
-            - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
-              value: ws://skydive-analyzer:8082/ws/subscriber/flow
+

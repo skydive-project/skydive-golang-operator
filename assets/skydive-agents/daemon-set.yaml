@@ -20,15 +20,6 @@ spec:
       containers:
         - args:
             - agent
-          env:
-            - name: SKYDIVE_ANALYZERS
-              value: $(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)
-            - name: SKYDIVE_LOGGING_LEVEL
-              value: ${SKYDIVE_LOGGING_LEVEL}
-            - name: SKYDIVE_AGENT_TOPOLOGY_PROBES
-              value: "netlink netns ovsdb runc"
-            - name: SKYDIVE_AGENT_TOPOLOGY_RUNC_RUN_PATH
-              value: "/run/containerd/runc /run/runc /run/runc-ctrs"
           image: skydive/skydive
           imagePullPolicy: Always
           name: skydive-agent

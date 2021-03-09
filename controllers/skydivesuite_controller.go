@@ -80,6 +80,9 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, errors.Wrap(err, "initializing skydive-analyzer Deployment failed")
 		}
 		dep.Namespace = skydive_suite.Spec.Namespace
+		for index := range dep.Spec.Template.Spec.Containers {
+			dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Analyzer.Deployment.Env
+		}
 
 		err = kclient_instance.CreateOrUpdateDeployment(dep)
 		if err != nil {
@@ -124,14 +127,10 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, errors.Wrap(err, "initializing skydive-agents DaemonSet failed")
 		}
 		ds.Namespace = skydive_suite.Spec.Namespace
-		for _, container := range ds.Spec.Template.Spec.Containers {
-			for _, env := range container.Env {
-				switch env.Name {
-				case "SKYDIVE_LOGGING_LEVEL":
-					env.Value = skydive_suite.Spec.Logging.Level
-				}
-			}
+		for index := range ds.Spec.Template.Spec.Containers {
+			ds.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Agents.DaemonSet.Env
 		}
+
 		err = kclient_instance.CreateOrUpdateDaemonSet(ds)
 		if err != nil {
 			return ctrl.Result{}, errors.Wrap(err, "DaemonSet creation failed")
@@ -145,13 +144,8 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return ctrl.Result{}, errors.Wrap(err, "initializing skydive flow-exporter Deployment failed")
 		}
 		dep.Namespace = skydive_suite.Spec.Namespace
-		for _, container := range dep.Spec.Template.Spec.Containers {
-			for _, env := range container.Env {
-				switch env.Name {
-				case "SKYDIVE_LOGGING_LEVEL":
-					env.Value = skydive_suite.Spec.Logging.Level
-				}
-			}
+		for index := range dep.Spec.Template.Spec.Containers {
+			dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.FlowExporter.Deployment.Env
 		}
 
 		err = kclient_instance.CreateOrUpdateDeployment(dep)

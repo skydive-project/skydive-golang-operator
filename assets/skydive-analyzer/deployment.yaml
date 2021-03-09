@@ -22,25 +22,6 @@ spec:
           args:
             - analyzer
             - --listen=0.0.0.0:8082
-          env:
-            - name: SKYDIVE_ANALYZER_FLOW_BACKEND
-              value: elasticsearch
-            - name: SKYDIVE_ANALYZER_TOPOLOGY_BACKEND
-              value: elasticsearch
-            - name: SKYDIVE_ANALYZER_TOPOLOGY_PROBES
-              value: "k8s ovn"
-            - name: SKYDIVE_ANALYZER_TOPOLOGY_K8S_PROBES
-              value: "cluster namespace node pod container service deployment"
-            - name: SKYDIVE_UI
-              value: '{"theme":"light","k8s_enabled":"true","topology": {"favorites":{"infrastructure":"G.V().Has(\"Manager\", Without(\"k8s\"))","kubernetes":"G.V().Has(\"Manager\",\"k8s\")"},"default_filter":"infrastructure"}}'
-            - name: SKYDIVE_ANALYZER_TOPOLOGY_FABRIC
-              value: 'TOR1->*[Type=host]/eth0 TOR1->*[Type=host]/eth1 TOR1->*[Type=host]/ens1 TOR1->*[Type=host]/ens2 TOR1->*[Type=host]/ens3'
-            - name: SKYDIVE_ANALYZER_STARTUP_CAPTURE_GREMLIN
-              value: 'G.V().Has("Type" , "device", "Name", Regex("eth0|ens1|ens2|ens3"))'
-            - name: SKYDIVE_ETCD_LISTEN
-              value: 0.0.0.0:12379
-            - name: SKYDIVE_LOGGING_LEVEL
-              value: ${SKYDIVE_LOGGING_LEVEL}
           ports:
             - containerPort: 8082
               protocol: TCP
@@ -66,35 +47,9 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
-        - image: elasticsearch:7.10.1
-          name: skydive-elasticsearch
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: discovery.type
-              value: single-node
-          ports:
-            - containerPort: 9200
-              protocol: TCP
-            - containerPort: 9300
-              protocol: TCP
-          livenessProbe:
-            failureThreshold: 3
-            tcpSocket:
-              port: 9200
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
-          readinessProbe:
-            failureThreshold: 1
-            tcpSocket:
-              port: 9200
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
           securityContext:
             privileged: true
+
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
