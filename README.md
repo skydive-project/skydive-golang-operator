@@ -44,7 +44,7 @@ run the zsh script :
 oc get routes
   ```
 
-2a. post the url into your web-browser
+2a. post the url into your web-browser (make sure you have got an access to the cluster and are not blocked by it's firewall)
 
 1b. If routes option doesn't work, run the following command 
   ```sh
