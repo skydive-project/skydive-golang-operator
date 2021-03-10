@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - skydive.example.com
   resources:
-  - skydivesuites
+  - skydiveflowexporters
   verbs:
   - create
   - delete
@@ -21,7 +21,27 @@ rules:
 - apiGroups:
   - skydive.example.com
   resources:
-  - skydivesuites/status
+  - skydiveflowexporters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydives
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - skydives/status
   verbs:
   - get
   - patch

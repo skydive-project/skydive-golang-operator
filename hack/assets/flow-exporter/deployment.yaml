@@ -1,20 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: skydive-flow-exporter-env
+  name: skydive-flow-exporter
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: skydive-flow-exporter-env
+      app: skydive-flow-exporter
       tier: flow-exporter-env
   template:
     metadata:
       labels:
-        app: skydive-flow-exporter-env
+        app: skydive-flow-exporter
         tier: flow-exporter-env
     spec:
       containers:
+        - image: skydive/skydive-flow-exporter
+          imagePullPolicy: Always
+          name: skydive-flow-exporter
         - image: minio/minio
           imagePullPolicy: Always
           name: minio

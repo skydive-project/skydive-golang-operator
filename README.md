@@ -16,41 +16,60 @@ To set up this operator follow the instructions below:
   darwin/amd64
 
 * An openshift cluster
-    * If you wish to run this locally by using kind please check [KindInstallationREADME.md](hack/KindInstallationREADME.md)
+    * If you wish to run this locally by using kind please
+      check [KindInstallationREADME.md](hack/KindInstallationREADME.md)
 
+### Modifying the CRD
 
+Modify the file config/skydive_v1_skydive.yaml and pick what you wish to deploy (insert true or false in the relevant
+field), the options are as follows:
 
-### Modyfing the CRD
-Modify the file config/skydive_v1_skydivesuite.yaml and pick what you wish to deploy (insert true or false in the relevant field), the options are as follows:
 * Skydive agents
 * Skydive analyzer
     * Service route
-    * Flow exporter
-    
-Choose your logging level (defaults to INFO)
 
+Change Env var : (TODO: more info to be added here)
+
+Choose your logging level (defaults to DEBUG)
 
 ### Installation - Open-Shift
 
-run the zsh script :
-    ```sh
-    deploy_operator_on_openshift.sh
-    ```
+run the script :
+
+```
+bash deploy_skydive_operator_on_openshift.sh
+```
 
 #### Analyzer UI
+
 1a. Check that all the pods, services and routes are running and afterwards run the following command:
 
 ```sh
 oc get routes
   ```
 
-2a. post the url into your web-browser (make sure you have got an access to the cluster and are not blocked by it's firewall)
+2a. post the url into your web-browser (make sure you have got an access to the cluster and are not blocked by it's
+firewall)
 
-1b. If routes option doesn't work, run the following command 
+1b. If routes option doesn't work, run the following command
+
   ```sh
 oc port-forward service/skydive-analyzer 8082:8082 --namespace=skydive
   ```
- 
+
 2b. Now open web-browser on localhost:8082
 
+#### Flow Exporter
+
+After a successful deployment of skydive operator run the script:
+
+```
+bash deploy_skydive_flow_exporter_operator.sh
+```
+
+for deployment developing using minio run: (don't forget to kill the old flow_exporter_operator if still running)
+
+```
+bash hack/deploy_skydive_flow_exporter_dev_operator.sh
+```
 

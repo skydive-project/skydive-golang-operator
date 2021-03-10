@@ -8,6 +8,9 @@ resources:
   kind: SkydiveAnalyzer
   version: v1beta1
 - group: skydive
-  kind: SkydiveSuite
+  kind: Skydive
+  version: v1
+- group: skydive
+  kind: SkydiveFlowExporter
   version: v1
 version: "2"

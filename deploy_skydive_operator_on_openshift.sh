@@ -25,19 +25,19 @@ oc_set_credentials() {
   oc adm policy add-cluster-role-to-user cluster-reader -z default
 }
 
-oc_clear_skydivesuite_crd() {
-SKYDIVE_SUITE_CRD=$(oc get skydivesuite)
+oc_clear_skydive_crd() {
+SKYDIVE_SUITE_CRD=$(oc get skydive)
 if [ ! -z "$SKYDIVE_SUITE_CRD" ]; then
-  oc delete -f config/crd/bases
+  oc delete -f config/crd/bases/skydive.example.com_skydives.yaml
 fi
 }
 
 # deoploy skydive
 oc_deploy_skydive() {
   make manifests
-  oc create -f config/crd/bases
-  oc create -f config/skydive_v1_skydivesuite.yaml
-  make run
+  oc create -f config/crd/bases/skydive.example.com_skydives.yaml
+  oc create -f config/skydive_v1_skydive.yaml
+  make run_skydive
 }
 
 # main
@@ -45,7 +45,7 @@ main() {
   oc_delete_skydive_project_if_exists
   oc_create_skydive_project
   oc_set_credentials
-  oc_clear_skydivesuite_crd
+  oc_clear_skydive_crd
   oc_deploy_skydive
 }
 

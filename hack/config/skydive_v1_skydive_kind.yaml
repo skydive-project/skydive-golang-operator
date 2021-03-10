@@ -1,14 +1,13 @@
 apiVersion: skydive.example.com/v1
-kind: SkydiveSuite
+kind: Skydive
 metadata:
-  name: skydivesuite-sample
+  name: skydive-sample
 spec:
   namespace: skydive
   enable:
     analyzer: true
     agents: true
     route: false
-    flowExporter: false
   agents:
     daemonSet:
       env:
@@ -40,11 +39,4 @@ spec:
         - name: SKYDIVE_ETCD_LISTEN
           value: 0.0.0.0:12379
         - name: SKYDIVE_LOGGING_LEVEL
-          value: ${SKYDIVE_LOGGING_LEVEL}
-  flowExporter:
-    deployment:
-      env:
-        - name: SKYDIVE_LOGGING_LEVEL
-          value: ${SKYDIVE_LOGGING_LEVEL}
-        - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
-          value: ws://$(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)/ws/subscriber/flow
+          value: ERROR

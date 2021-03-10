@@ -22,8 +22,11 @@ manager: generate fmt vet
 	go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet manifests
-	go run ./main.go
+run_skydive: generate fmt vet manifests
+	go run skydive_operator_main/main.go
+
+run_flow_exporter: generate fmt vet manifests
+	go run skydive_flow_exporter_main/main.go
 
 # Install CRDs into a cluster
 install: manifests

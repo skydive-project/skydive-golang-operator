@@ -38,22 +38,22 @@ var (
 	SkydiveFlowExporter       = "flow-exporter/deployment.yaml"
 )
 
-// SkydiveSuiteReconciler reconciles a SkydiveSuite object
-type SkydiveSuiteReconciler struct {
+// SkydiveReconciler reconciles a Skydive object
+type SkydiveReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=skydive.example.com,resources=skydivesuites,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=skydive.example.com,resources=skydivesuites/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=skydive.example.com,resources=skydives,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=skydive.example.com,resources=skydives/status,verbs=get;update;patch
 
-func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("skydivesuite", req.NamespacedName)
+func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("skydive", req.NamespacedName)
 
-	skydive_suite := skydivev1.SkydiveSuite{}
+	skydive_suite := skydivev1.Skydive{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &skydive_suite); err != nil {
-		log.Error(err, "failed to get SkydiveSuite resource")
+		log.Error(err, "failed to get Skydive resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -81,7 +81,10 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		dep.Namespace = skydive_suite.Spec.Namespace
 		for index := range dep.Spec.Template.Spec.Containers {
-			dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Analyzer.Deployment.Env
+			if dep.Spec.Template.Spec.Containers[index].Name == "skydive-analyzer" {
+				dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Analyzer.Deployment.Env
+				break
+			}
 		}
 
 		err = kclient_instance.CreateOrUpdateDeployment(dep)
@@ -128,37 +131,22 @@ func (r *SkydiveSuiteReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		ds.Namespace = skydive_suite.Spec.Namespace
 		for index := range ds.Spec.Template.Spec.Containers {
-			ds.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Agents.DaemonSet.Env
+			if ds.Spec.Template.Spec.Containers[index].Name == "skydive-agent" {
+				ds.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.Agents.DaemonSet.Env
+				break
+			}
 		}
-
 		err = kclient_instance.CreateOrUpdateDaemonSet(ds)
 		if err != nil {
 			return ctrl.Result{}, errors.Wrap(err, "DaemonSet creation failed")
 		}
 	}
 
-	if skydive_suite.Spec.Enable.FlowExporter {
-		dep, err := kclient.NewDeployment(assets.MustNewAssetReader(SkydiveFlowExporter))
-		if err != nil {
-			log.Error(err, "initializing skydive flow-exporter Deployment failed")
-			return ctrl.Result{}, errors.Wrap(err, "initializing skydive flow-exporter Deployment failed")
-		}
-		dep.Namespace = skydive_suite.Spec.Namespace
-		for index := range dep.Spec.Template.Spec.Containers {
-			dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.FlowExporter.Deployment.Env
-		}
-
-		err = kclient_instance.CreateOrUpdateDeployment(dep)
-		if err != nil {
-			return ctrl.Result{}, errors.Wrap(err, "Flow exporter deployment creation has failed")
-		}
-	}
-
 	return ctrl.Result{}, nil
 }
 
-func (r *SkydiveSuiteReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *SkydiveReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&skydivev1.SkydiveSuite{}).
+		For(&skydivev1.Skydive{}).
 		Complete(r)
 }

@@ -24,8 +24,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// SkydiveSuiteSpec defines the desired state of SkydiveSuite
-type SkydiveSuiteSpec struct {
+// SkydiveSpec defines the desired state of Skydive
+type SkydiveSpec struct {
 	Namespace string `json:"namespace,omitempty"`
 
 	Enable EnableSpec `json:"enable"`
@@ -33,8 +33,6 @@ type SkydiveSuiteSpec struct {
 	Agents AgentsSpec `json:"agents"`
 
 	Analyzer AnalyzerSpec `json:"analyzer"`
-
-	FlowExporter FlowExporterSpec `json:"flowExporter"`
 }
 
 type AgentsSpec struct {
@@ -43,10 +41,6 @@ type AgentsSpec struct {
 
 type AnalyzerSpec struct {
 	Deployment AnalyzerDeploymentSpec `json:"deployment"`
-}
-
-type FlowExporterSpec struct {
-	Deployment FlowExporterDeploymentSpec `json:"deployment"`
 }
 
 type AgentsDaemonSetSpec struct {
@@ -69,15 +63,6 @@ type AnalyzerDeploymentSpec struct {
 	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
 }
 
-type FlowExporterDeploymentSpec struct {
-	// List of environment variables to set in the container.
-	// Cannot be updated.
-	// +optional
-	// +patchMergeKey=name
-	// +patchStrategy=merge
-	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
-}
-
 type EnableSpec struct {
 	// +optional
 	// +kubebuilder:default=true
@@ -90,38 +75,34 @@ type EnableSpec struct {
 	// +optional
 	// +kubebuilder:default=false
 	Route bool `json:"route,omitempty"`
-
-	// +optional
-	// +kubebuilder:default=true
-	FlowExporter bool `json:"flowExporter,omitempty"`
 }
 
-// SkydiveSuiteStatus defines the observed state of SkydiveSuite
-type SkydiveSuiteStatus struct {
+// SkydiveStatus defines the observed state of Skydive
+type SkydiveStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true
 
-// SkydiveSuite is the Schema for the skydivesuites API
-type SkydiveSuite struct {
+// Skydive is the Schema for the skydives API
+type Skydive struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SkydiveSuiteSpec   `json:"spec,omitempty"`
-	Status SkydiveSuiteStatus `json:"status,omitempty"`
+	Spec   SkydiveSpec   `json:"spec,omitempty"`
+	Status SkydiveStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// SkydiveSuiteList contains a list of SkydiveSuite
-type SkydiveSuiteList struct {
+// SkydiveList contains a list of Skydive
+type SkydiveList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []SkydiveSuite `json:"items"`
+	Items           []Skydive `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&SkydiveSuite{}, &SkydiveSuiteList{})
+	SchemeBuilder.Register(&Skydive{}, &SkydiveList{})
 }
