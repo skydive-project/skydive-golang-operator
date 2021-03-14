@@ -1,4 +1,4 @@
-# delete skydive project if it exists (to get new frech deployment)
+# delete skydive project if it exists (to get new fresh deployment)
 oc_delete_skydive_project_if_exists() {
 PROJECT_SKYDIVE=$(oc get project | grep skydive)
 if [ ! -z "$PROJECT_SKYDIVE" ]; then
@@ -21,23 +21,23 @@ oc_create_skydive_project() {
 oc_set_credentials() {
   # analyzer and agent run as privileged container
   oc adm policy add-scc-to-user privileged -z default
-  # analyzer need cluster-reader access get all informations from the cluster
+  # analyzer need cluster-reader access to get all information from the cluster
   oc adm policy add-cluster-role-to-user cluster-reader -z default
 }
 
 oc_clear_skydive_crd() {
 SKYDIVE_SUITE_CRD=$(oc get skydive)
-if [ ! -z "$SKYDIVE_SUITE_CRD" ]; then
+if [ -n "$SKYDIVE_SUITE_CRD" ]; then
   oc delete -f config/crd/bases/skydive.example.com_skydives.yaml
 fi
 }
 
-# deoploy skydive
+# deploy skydive
 oc_deploy_skydive() {
   make manifests
-  oc create -f config/crd/bases/skydive.example.com_skydives.yaml
+  oc create -f config/crd/bases/
   oc create -f config/skydive_v1_skydive.yaml
-  make run_skydive
+  make run
 }
 
 # main

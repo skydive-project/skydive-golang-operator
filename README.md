@@ -1,8 +1,8 @@
 <!-- ABOUT THE PROJECT -->
 
-# Skydive Operator (WIP)
+# Skydive Operator
 
-This is a simple operator to deploy skydive analyzer and agents.
+This is an operator to deploy skydive analyzer, agents and flow-exporter.
 
 <!-- GETTING STARTED -->
 
@@ -18,26 +18,13 @@ To set up this operator follow the instructions below:
 * An openshift cluster
     * If you wish to run this locally by using kind please
       check [KindInstallationREADME.md](hack/KindInstallationREADME.md)
-
-### Modifying the CRD
-
-Modify the file config/skydive_v1_skydive.yaml and pick what you wish to deploy (insert true or false in the relevant
-field), the options are as follows:
-
-* Skydive agents
-* Skydive analyzer
-    * Service route
-
-Change Env var : (TODO: more info to be added here)
-
-Choose your logging level (defaults to DEBUG)
-
+      
 ### Installation - Open-Shift
 
-run the script :
+run the script (make sure you are logged into open shift cluster):
 
 ```
-bash deploy_skydive_operator_on_openshift.sh
+./deploy_skydive_operator_on_openshift.sh
 ```
 
 #### Analyzer UI
@@ -73,3 +60,17 @@ for deployment developing using minio run: (don't forget to kill the old flow_ex
 bash hack/deploy_skydive_flow_exporter_dev_operator.sh
 ```
 
+### Customize skydive deployment / CRD
+
+Modify the current config/skydive_v1_skydive.yaml and pick what you wish to deploy (insert true or false in the relevant
+field), the options are as follows:
+
+* Skydive agents
+* Skydive analyzer
+    * Service route
+    
+You can provide the skydive operator with environments variables in order to customize your skydive deployment.
+Checkout [this example](config/skydive_v1_skydive_env_example.yaml) of crd to get started with providing environment 
+variables to the skydive operator, full list of acceptable enviorment variables are listed [here](https://github.com/skydive-project/skydive/blob/master/etc/skydive.yml.default)
+
+Choose your logging level (defaults to DEBUG)

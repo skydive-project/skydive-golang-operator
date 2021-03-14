@@ -32,21 +32,21 @@ import (
 )
 
 var (
-	flowExporterScheme   = runtime.NewScheme()
-	flowExporterSetuplog = ctrl.Log.WithName("setup")
+	scheme   = runtime.NewScheme()
+	setupLog = ctrl.Log.WithName("setup")
 )
 
 func init() {
-	_ = clientgoscheme.AddToScheme(flowExporterScheme)
+	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = skydivev1.AddToScheme(flowExporterScheme)
-	// +kubebuilder:scaffold:flow_exporter_scheme
+	_ = skydivev1.AddToScheme(scheme)
+	// +kubebuilder:scaffold:scheme
 }
 
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8081", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -55,14 +55,23 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             flowExporterScheme,
+		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "c6f81ab3.example.com",
 	})
 	if err != nil {
-		flowExporterSetuplog.Error(err, "unable to start manager")
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	if err = (&controllers.SkydiveReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Skydive"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Skydive")
 		os.Exit(1)
 	}
 
@@ -71,14 +80,14 @@ func main() {
 		Log:    ctrl.Log.WithName("controllers").WithName("SkydiveFlowExporter"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		flowExporterSetuplog.Error(err, "unable to create controller", "controller", "SkydiveFlowExporter")
+		setupLog.Error(err, "unable to create controller", "controller", "SkydiveFlowExporter")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
 
-	flowExporterSetuplog.Info("starting manager")
+	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		flowExporterSetuplog.Error(err, "problem running manager")
+		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
 }

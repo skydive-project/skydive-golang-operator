@@ -1,4 +1,4 @@
-# delete skydive project if it exists (to get new frech deployment)
+# delete skydive project if it exists (to get new fresh deployment)
 kubectl_delete_skydive_project_if_exists() {
 NAMESPACE_SKYDIVE=$(kubectl get namespace | grep skydive)
 if [ ! -z "$NAMESPACE_SKYDIVE" ]; then
@@ -20,7 +20,7 @@ fi
 
 kubectl_deploy_skydive() {
   make manifests
-  kubectl create -f config/crd/bases/skydive.example.com_skydives.yaml
+  kubectl create -f config/crd/bases/
   kubectl create -f hack/config/skydive_v1_skydive_kind.yaml
   make run_skydive
 }
