@@ -83,6 +83,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "SkydiveFlowExporter")
 		os.Exit(1)
 	}
+	if err = (&controllers.PrometheusConnectorReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("PrometheusConnector"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PrometheusConnector")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

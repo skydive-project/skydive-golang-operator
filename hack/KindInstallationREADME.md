@@ -35,7 +35,7 @@ make sure that your have a running kind cluster and that kubectl commands refer 
 
 run the script :
 
-```bash deploy_operator_on_kind.sh```
+```./deploy_operator_on_kind.sh```
 
 #### Analyzer UI
 1. Check that all the pods and services are running and afterwards run the following command:

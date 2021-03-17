@@ -35,7 +35,6 @@ var (
 	SkydiveAnalyzerDeployment = "skydive-analyzer/deployment.yaml"
 	SkydiveAnalyzerRoute      = "skydive-analyzer/route.yaml"
 	SkydiveAnalyzerService    = "skydive-analyzer/service.yaml"
-	SkydiveFlowExporter       = "flow-exporter/deployment.yaml"
 )
 
 // SkydiveReconciler reconciles a Skydive object

@@ -1,0 +1,20 @@
+apiVersion: skydive.example.com/v1
+kind: PrometheusConnector
+metadata:
+  name: prometheusconnector-sample
+spec:
+  namespace: skydive
+  deployment:
+    env:
+      - name: SKYDIVE_LOGGING_LEVEL
+        value: DEBUG
+      - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
+        value: ws://skydive-analyzer:8082/ws/subscriber/flow
+      - name: SKYDIVE_PIPELINE_MANGLE
+        value: none
+      - name: SKYDIVE_PIPELINE_TRANSFORM_TYPE
+        value: none
+      - name: SKYDIVE_PIPELINE_STORE_TYPE
+        value: prom_sky_con
+      - name: SKYDIVE_PIPELINE_STORE_PROM_SKY_CON_PORT
+        value: "9100"

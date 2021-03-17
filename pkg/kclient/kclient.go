@@ -398,3 +398,31 @@ func (c *KClient) CreateOrUpdateDaemonSet(ds *appsv1.DaemonSet) error {
 	}
 	return nil
 }
+
+func NewConfigMap(manifest io.Reader) (*v1.ConfigMap, error) {
+	cm := v1.ConfigMap{}
+	err := yaml.NewYAMLOrJSONDecoder(manifest, 100).Decode(&cm)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cm, nil
+}
+
+func (c *KClient) CreateOrUpdateConfigMap(cm *v1.ConfigMap) error {
+	cmClient := c.kclient.CoreV1().ConfigMaps(cm.GetNamespace())
+	existing, err := cmClient.Get(context.TODO(), cm.GetName(), metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		_, err := cmClient.Create(context.TODO(), cm, metav1.CreateOptions{})
+		return errors.Wrap(err, "creating ConfigMap object failed")
+	}
+	if err != nil {
+		return errors.Wrap(err, "retrieving ConfigMap object failed")
+	}
+
+	required := cm.DeepCopy()
+	mergeMetadata(&required.ObjectMeta, existing.ObjectMeta)
+
+	_, err = cmClient.Update(context.TODO(), required, metav1.UpdateOptions{})
+	return errors.Wrap(err, "updating ConfigMap object failed")
+}

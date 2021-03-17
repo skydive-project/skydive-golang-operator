@@ -51,13 +51,21 @@ oc port-forward service/skydive-analyzer 8082:8082 --namespace=skydive
 After a successful deployment of skydive operator run the script:
 
 ```
-bash deploy_skydive_flow_exporter_operator.sh
+./deploy_skydive_flow_exporter_operator.sh
 ```
 
 for deployment developing using minio run: (don't forget to kill the old flow_exporter_operator if still running)
 
 ```
-bash hack/deploy_skydive_flow_exporter_dev_operator.sh
+./hack/deploy_skydive_flow_exporter_dev_operator.sh
+```
+
+#### Prometheus Connector 
+
+After a successful deployment of skydive operator run the script:
+
+```
+./deploy_prometheus_connector.sh
 ```
 
 ### Customize skydive deployment / CRD

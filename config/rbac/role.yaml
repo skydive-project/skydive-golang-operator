@@ -9,6 +9,26 @@ rules:
 - apiGroups:
   - skydive.example.com
   resources:
+  - prometheusconnectors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - skydive.example.com
+  resources:
+  - prometheusconnectors/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - skydive.example.com
+  resources:
   - skydiveflowexporters
   verbs:
   - create
