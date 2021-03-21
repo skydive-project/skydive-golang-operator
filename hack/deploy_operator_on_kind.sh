@@ -22,7 +22,7 @@ kubectl_deploy_skydive() {
   make manifests
   kubectl create -f config/crd/bases/
   kubectl create -f hack/config/skydive_v1_skydive_kind.yaml
-  make run_skydive
+  make run
 }
 
 # main

@@ -10,7 +10,7 @@ deploy_skydive_flow_exporter_dev() {
   make manifests
   kubectl create -f config/crd/bases/skydive.example.com_skydiveflowexporters.yaml
   kubectl create -f hack/config/skydive_v1_skydiveflowexporter_dev.yaml
-  make run_flow_exporter
+  make  run
 }
 
 # main
