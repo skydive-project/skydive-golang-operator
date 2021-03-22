@@ -14,7 +14,7 @@ kubectl_create_skydive_project() {
 kubectl_clear_skydive_crd() {
 SKYDIVE_SUITE_CRD=$(kubectl get skydive)
 if [ ! -z "$SKYDIVE_SUITE_CRD" ]; then
-  kubectl delete -f config/crd/bases/skydive.example.com_skydives.yaml
+  kubectl delete -f config/crd/bases/
 fi
 }
 
