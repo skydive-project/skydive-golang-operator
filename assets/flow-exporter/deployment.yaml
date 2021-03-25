@@ -1,0 +1,25 @@
+# Skydive FlowExporter (Deployment)
+#
+# Containers included in this pod::
+# (1) Skydive Flow Exporter - Flow exporter (connects to Skydive Analyzer)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skydive-flow-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skydive-flow-exporter
+      tier: flow-exporter
+  template:
+    metadata:
+      labels:
+        app: skydive-flow-exporter
+        tier: flow-exporter
+    spec:
+      containers:
+        - image: skydive/skydive-flow-exporter
+          imagePullPolicy: Always
+          name: skydive-flow-exporter
+

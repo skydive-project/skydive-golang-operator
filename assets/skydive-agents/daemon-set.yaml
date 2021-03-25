@@ -1,0 +1,74 @@
+# Skydive Agents  (DaemonSet)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: skydive
+    tier: agent
+  name: skydive-agent
+spec:
+  selector:
+    matchLabels:
+      app: skydive
+      tier: agent
+  template:
+    metadata:
+      labels:
+        app: skydive
+        tier: agent
+    spec:
+      containers:
+        - args:
+            - agent
+          image: skydive/skydive
+          imagePullPolicy: Always
+          name: skydive-agent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /run/docker.sock
+              name: docker
+            - mountPath: /run/netns
+              name: netns
+            - mountPath: /run/openvswitch/db.sock
+              name: ovsdb
+            - mountPath: /run/runc
+              name: runc
+            - mountPath: /run/runc-ctrs
+              name: runc-ctrs
+            - mountPath: /run/containerd/runc
+              name: containerd-runc
+            - mountPath: /var/data/openshiftvolumes
+              name: data-openshiftvolumes
+            - mountPath: /var/lib/origin
+              name: lib-origin
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - hostPath:
+            path: /run/docker.sock
+          name: docker
+        - hostPath:
+            path: /run/netns
+          name: netns
+        - hostPath:
+            path: /run/runc
+          name: runc
+        - hostPath:
+            path: /run/runc-ctrs
+          name: runc-ctrs
+        - hostPath:
+            path: /run/containerd/runc
+          name: containerd-runc
+        - hostPath:
+            path: /run/openvswitch/db.sock
+          name: ovsdb
+        - hostPath:
+            path: /var/data/openshiftvolumes
+          name: data-openshiftvolumes
+        - hostPath:
+            path: /var/lib/origin
+          name: lib-origin

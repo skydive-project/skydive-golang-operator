@@ -1,0 +1,22 @@
+apiVersion: skydive.example.com/v1
+kind: Skydive
+metadata:
+  name: skydive-sample
+spec:
+  namespace: skydive
+  enable:
+    analyzer: true
+    agents: true
+    route: true
+  agents:
+    daemonSet:
+      env:
+        - name: SKYDIVE_ANALYZERS
+          value: $(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+  analyzer:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR

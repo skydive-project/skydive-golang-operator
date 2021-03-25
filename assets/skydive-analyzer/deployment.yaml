@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skydive-analyzer
+  namespace: skydive
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skydive
+      tier: analyzer
+  template:
+    metadata:
+      labels:
+        app: skydive
+        tier: analyzer
+    spec:
+      containers:
+        - image: skydive/skydive
+          imagePullPolicy: Always
+          name: skydive-analyzer
+          args:
+            - analyzer
+            - --listen=0.0.0.0:8082
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+            - containerPort: 8082
+              protocol: UDP
+            - containerPort: 12379
+              protocol: TCP
+            - containerPort: 12380
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 1
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          securityContext:
+            privileged: true
+
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+    - type: ConfigChangea

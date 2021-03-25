@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skydive-prometheus-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skydive-prometheus-connector
+      tier: prometheus-connector
+  template:
+    metadata:
+      labels:
+        app: skydive-prometheus-connector
+        tier: prometheus-connector
+    spec:
+      containers:
+        - image: skydive/skydive-flow-exporter
+          imagePullPolicy: Always
+          name: skydive-prometheus-connector
+          ports:
+            - containerPort: 9100
+              protocol: TCP
+

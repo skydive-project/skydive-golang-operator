@@ -1,0 +1,33 @@
+# Service for Skydive Analyzer
+apiVersion: v1
+kind: Service
+metadata:
+  name: skydive-analyzer
+  labels:
+    app: skydive-analyzer
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8082
+      name: api
+      protocol: TCP
+      targetPort: 8082
+    - port: 8082
+      name: protobuf
+      protocol: UDP
+      targetPort: 8082
+    - port: 12379
+      name: etcd
+      protocol: TCP
+      targetPort: 12379
+    - port: 12380
+      name: etcd-cluster
+      protocol: TCP
+      targetPort: 12380
+    - port: 9200
+      name: es
+      protocol: TCP
+      targetPort: 9200
+  selector:
+    app: skydive
+    tier: analyzer

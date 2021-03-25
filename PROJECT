@@ -1,0 +1,19 @@
+domain: example.com
+repo: skydive
+resources:
+- group: skydive
+  kind: SkydiveAgents
+  version: v1beta1
+- group: skydive
+  kind: SkydiveAnalyzer
+  version: v1beta1
+- group: skydive
+  kind: Skydive
+  version: v1
+- group: skydive
+  kind: SkydiveFlowExporter
+  version: v1
+- group: skydive
+  kind: PrometheusConnector
+  version: v1
+version: "2"
