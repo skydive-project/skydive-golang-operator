@@ -18,13 +18,20 @@ To set up this operator follow the instructions below:
 * An openshift cluster
     * If you wish to run this locally by using kind please
       check [KindInstallationREADME.md](hack/KindInstallationREADME.md)
-      
+
 ### Installation - Open-Shift
 
 run the script (make sure you are logged into open shift cluster):
 
 ```
 ./deploy_skydive_operator_on_openshift.sh
+```
+
+If for some reason you have changed your KUBECONFIG default location please update the KUBECONFIG environment variable
+by using this command:
+
+```bash
+export KUBECONFIG=$PATH_TO_YOUR_KUBECONFIG
 ```
 
 #### Analyzer UI
@@ -60,7 +67,7 @@ for deployment developing using minio run: (don't forget to kill the old flow_ex
 ./hack/deploy_skydive_flow_exporter_dev_operator.sh
 ```
 
-#### Prometheus Connector 
+#### Prometheus Connector
 
 After a successful deployment of skydive operator run the script:
 
@@ -76,9 +83,10 @@ field), the options are as follows:
 * Skydive agents
 * Skydive analyzer
     * Service route
-    
+
 You can provide the skydive operator with environments variables in order to customize your skydive deployment.
-Checkout [this example](config/skydive_v1_skydive_env_example.yaml) of crd to get started with providing environment 
-variables to the skydive operator, full list of acceptable enviorment variables are listed [here](https://github.com/skydive-project/skydive/blob/master/etc/skydive.yml.default)
+Checkout [this example](config/skydive_v1_skydive_env_example.yaml) of crd to get started with providing environment
+variables to the skydive operator, full list of acceptable enviorment variables are
+listed [here](https://github.com/skydive-project/skydive/blob/master/etc/skydive.yml.default)
 
 Choose your logging level (defaults to DEBUG)
