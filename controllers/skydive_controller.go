@@ -70,6 +70,12 @@ func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
+	err = kclient_instance.InitializeNamespace("skydive")
+	if err != nil {
+		log.Error(err, "Namespace Initialization has failed")
+		return ctrl.Result{}, err
+	}
+
 	// Creating skydive Analyzers
 	if skydive_suite.Spec.Enable.Analyzer {
 

@@ -38,8 +38,8 @@ import (
 )
 
 const (
-	deploymentCreateTimeout = 5 * time.Minute
-	metadataPrefix          = "monitoring.openshift.io/"
+	createTimeout  = 5 * time.Minute
+	metadataPrefix = "monitoring.openshift.io/"
 )
 
 type KClient struct {
@@ -83,6 +83,47 @@ func New(cfg *rest.Config, version string, namespace, namespaceSelector string) 
 	}, nil
 }
 
+func (c *KClient) InitializeNamespace(namespace_name string) error {
+	ns := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace_name}}
+
+	err := c.kclient.CoreV1().Namespaces().Delete(context.TODO(), namespace_name, metav1.DeleteOptions{})
+	err = c.WaitForNamespaceDeletionRollout(namespace_name)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.kclient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+	return c.WaitForNamespaceCreationRollout(namespace_name)
+
+}
+
+func (c *KClient) WaitForNamespaceDeletionRollout(namespace_name string) error {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
+		_, err := c.kclient.CoreV1().Namespaces().Get(context.TODO(), namespace_name, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			return true, nil
+		}
+		return false, err
+	}); err != nil {
+		return errors.Wrapf(err, "waiting for Namespace Deletion Rollout of %s", namespace_name)
+	}
+	return nil
+}
+
+func (c *KClient) WaitForNamespaceCreationRollout(namespace_name string) error {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
+		_, err := c.kclient.CoreV1().Namespaces().Get(context.TODO(), namespace_name, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}); err != nil {
+		return errors.Wrapf(err, "waiting for Namespace Creation Rollout of %s", namespace_name)
+	}
+	return nil
+}
+
 func (c *KClient) CreateOrUpdateDeployment(dep *appsv1.Deployment) error {
 	existing, err := c.kclient.AppsV1().Deployments(dep.GetNamespace()).Get(context.TODO(), dep.GetName(), metav1.GetOptions{})
 
@@ -122,7 +163,7 @@ func (c *KClient) CreateOrUpdateDeployment(dep *appsv1.Deployment) error {
 
 func (c *KClient) WaitForDeploymentRollout(dep *appsv1.Deployment) error {
 	var lastErr error
-	if err := wait.Poll(time.Second, deploymentCreateTimeout, func() (bool, error) {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
 		d, err := c.kclient.AppsV1().Deployments(dep.GetNamespace()).Get(context.TODO(), dep.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -234,7 +275,7 @@ func (c *KClient) CreateRouteIfNotExists(r *routev1.Route) error {
 func (c *KClient) WaitForRouteReady(r *routev1.Route) (string, error) {
 	host := ""
 	var lastErr error
-	if err := wait.Poll(time.Second, deploymentCreateTimeout, func() (bool, error) {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
 		newRoute, err := c.osrclient.RouteV1().Routes(r.GetNamespace()).Get(context.TODO(), r.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return false, err
@@ -309,7 +350,7 @@ func NewDaemonSet(manifest io.Reader) (*appsv1.DaemonSet, error) {
 
 func (c *KClient) WaitForDaemonSetRollout(ds *appsv1.DaemonSet) error {
 	var lastErr error
-	if err := wait.Poll(time.Second, deploymentCreateTimeout, func() (bool, error) {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
 		d, err := c.kclient.AppsV1().DaemonSets(ds.GetNamespace()).Get(context.TODO(), ds.GetName(), metav1.GetOptions{})
 		if err != nil {
 			return false, err
