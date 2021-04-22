@@ -1,0 +1,51 @@
+apiVersion: skydive-group.example.com/v1
+kind: Skydive
+metadata:
+  name: skydive-sample
+spec:
+  namespace: skydive
+  openShiftDeployment: false
+  enable:
+    analyzer: true
+    agents: true
+    route: false
+    flowExporter: true
+    prometheusConnector: true
+
+  agents:
+    daemonSet:
+      env:
+        - name: SKYDIVE_ANALYZERS
+          value: $(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+
+  analyzer:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+
+  flowExporter:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+        - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
+          value: ws://$(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)/ws/subscriber/flow
+
+  prometheusConnector:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: DEBUG
+        - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
+          value: ws://skydive-analyzer:8082/ws/subscriber/flow
+        - name: SKYDIVE_PIPELINE_MANGLE
+          value: none
+        - name: SKYDIVE_PIPELINE_TRANSFORM_TYPE
+          value: none
+        - name: SKYDIVE_PIPELINE_STORE_TYPE
+          value: prom_sky_con
+        - name: SKYDIVE_PIPELINE_STORE_PROM_SKY_CON_PORT
+          value: "9100"

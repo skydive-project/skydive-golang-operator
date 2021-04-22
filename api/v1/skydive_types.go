@@ -1,5 +1,5 @@
 /*
-
+Copyright 2021.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,11 +28,19 @@ import (
 type SkydiveSpec struct {
 	Namespace string `json:"namespace,omitempty"`
 
+	// +optional
+	// +kubebuilder:default=false
+	OpenShiftDeployment bool `json:"openShiftDeployment,omitempty"`
+
 	Enable EnableSpec `json:"enable"`
 
 	Agents AgentsSpec `json:"agents"`
 
 	Analyzer AnalyzerSpec `json:"analyzer"`
+
+	FlowExporter FlowExporterSpec `json:"flowExporter"`
+
+	PrometheusConnector PrometheusConnectorSpec `json:"prometheusConnector"`
 }
 
 type AgentsSpec struct {
@@ -73,8 +81,42 @@ type EnableSpec struct {
 	Agents bool `json:"agents,omitempty"`
 
 	// +optional
-	// +kubebuilder:default=false
+	// +kubebuilder:default=true
 	Route bool `json:"route,omitempty"`
+
+	// +optional
+	// +kubebuilder:default=false
+	FlowExporter bool `json:"flowExporter,omitempty"`
+
+	// +optional
+	// +kubebuilder:default=false
+	PrometheusConnector bool `json:"prometheusConnector,omitempty"`
+}
+
+type FlowExporterSpec struct {
+	Deployment FlowExporterDeploymentSpec `json:"deployment"`
+}
+
+type FlowExporterDeploymentSpec struct {
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
+}
+
+type PrometheusConnectorSpec struct {
+	Deployment PrometheusConnectorDeploymentSpec `json:"deployment"`
+}
+
+type PrometheusConnectorDeploymentSpec struct {
+	// List of environment variables to set in the container.
+	// Cannot be updated.
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Env []v1.EnvVar `json:"env,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,7,rep,name=env"`
 }
 
 // SkydiveStatus defines the observed state of Skydive
@@ -83,7 +125,8 @@ type SkydiveStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// +kubebuilder:object:root=true
+//+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
 
 // Skydive is the Schema for the skydives API
 type Skydive struct {
@@ -94,7 +137,7 @@ type Skydive struct {
 	Status SkydiveStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+//+kubebuilder:object:root=true
 
 // SkydiveList contains a list of Skydive
 type SkydiveList struct {

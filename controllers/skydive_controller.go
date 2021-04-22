@@ -1,5 +1,5 @@
 /*
-
+Copyright 2021.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ package controllers
 import (
 	"context"
 	"github.com/pkg/errors"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	skydivev1 "skydive/api/v1"
-	"skydive/pkg/config"
-	"skydive/pkg/kclient"
-	"skydive/pkg/manifests"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"skydive-operator/pkg/kclient"
+	"skydive-operator/pkg/manifests"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	skydivegroupv1 "skydive-operator/api/v1"
 )
 
 var (
@@ -35,6 +36,16 @@ var (
 	SkydiveAnalyzerDeployment = "skydive-analyzer/deployment.yaml"
 	SkydiveAnalyzerRoute      = "skydive-analyzer/route.yaml"
 	SkydiveAnalyzerService    = "skydive-analyzer/service.yaml"
+
+	SkydiveFlowExporterDev = "flow-exporter/deployment.yaml"
+
+	PrometheusConnectorDeployment = "prometheus-connector/deployment.yaml"
+	PrometheusConnectorService    = "prometheus-connector/service.yaml"
+	PrometheusConnectorRoute      = "prometheus-connector/route.yaml"
+	PrometheusConfigMap           = "prometheus/config-map.yaml"
+	PrometheusDeployment          = "prometheus/deployment.yaml"
+	PrometheusService             = "prometheus/service.yaml"
+	PrometheusRoute               = "prometheus/route.yaml"
 )
 
 // SkydiveReconciler reconciles a Skydive object
@@ -44,13 +55,16 @@ type SkydiveReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=skydive.example.com,resources=skydives,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=skydive.example.com,resources=skydives/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=skydive-group.example.com,resources=skydives,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=skydive-group.example.com,resources=skydives/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=skydive-group.example.com,resources=skydives/finalizers,verbs=update
 
 func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("skydive", req.NamespacedName)
 
-	skydive_suite := skydivev1.Skydive{}
+	log.Info("Starting Reconciler")
+
+	skydive_suite := skydivegroupv1.Skydive{}
 	if err := r.Client.Get(ctx, req.NamespacedName, &skydive_suite); err != nil {
 		log.Error(err, "failed to get Skydive resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -75,6 +89,8 @@ func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Error(err, "Namespace Initialization has failed")
 		return ctrl.Result{}, err
 	}
+
+	log.Info("Starting Skydive Analyzers")
 
 	// Creating skydive Analyzers
 	if skydive_suite.Spec.Enable.Analyzer {
@@ -107,26 +123,29 @@ func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err != nil {
 			return ctrl.Result{}, errors.Wrap(err, "Service creation has failed")
 		}
+		if skydive_suite.Spec.OpenShiftDeployment {
+			if skydive_suite.Spec.Enable.Route {
+				route, err := kclient.NewRoute(assets.MustNewAssetReader(SkydiveAnalyzerRoute))
+				if err != nil {
+					log.Error(err, "initializing skydive-analyzer Route failed")
+				}
+				route.Namespace = skydive_suite.Spec.Namespace
 
-		if skydive_suite.Spec.Enable.Route {
-			route, err := kclient.NewRoute(assets.MustNewAssetReader(SkydiveAnalyzerRoute))
-			if err != nil {
-				log.Error(err, "initializing skydive-analyzer Route failed")
-			}
-			route.Namespace = skydive_suite.Spec.Namespace
+				err = kclient_instance.CreateRouteIfNotExists(route)
+				if err != nil {
+					log.Error(err, "Route creation has failed")
+				}
 
-			err = kclient_instance.CreateRouteIfNotExists(route)
-			if err != nil {
-				log.Error(err, "Route creation has failed")
-			}
-
-			_, err = kclient_instance.WaitForRouteReady(route)
-			if err != nil {
-				log.Error(err, "waiting for Skydive Route to become ready failed")
+				_, err = kclient_instance.WaitForRouteReady(route)
+				if err != nil {
+					log.Error(err, "waiting for Skydive Route to become ready failed")
+				}
 			}
 		}
 
 	}
+
+	log.Info("Starting Skydive Agents")
 
 	// Creating skydive Agents
 	if skydive_suite.Spec.Enable.Agents {
@@ -147,11 +166,135 @@ func (r *SkydiveReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 	}
 
+	if skydive_suite.Spec.Enable.FlowExporter {
+		log.Info("Starting Skydive FlowExporter")
+		dep, err := kclient.NewDeployment(assets.MustNewAssetReader(SkydiveFlowExporterDev))
+		if err != nil {
+			log.Error(err, "initializing skydive flow-exporter Deployment failed")
+			return ctrl.Result{}, errors.Wrap(err, "initializing skydive flow-exporter Deployment failed")
+		}
+		dep.Namespace = skydive_suite.Spec.Namespace
+		for index := range dep.Spec.Template.Spec.Containers {
+			if dep.Spec.Template.Spec.Containers[index].Name == "skydive-flow-exporter" {
+				dep.Spec.Template.Spec.Containers[index].Env = skydive_suite.Spec.FlowExporter.Deployment.Env
+				break
+			}
+		}
+
+		err = kclient_instance.CreateOrUpdateDeployment(dep)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Flow exporter deployment creation has failed")
+		}
+	}
+
+	if skydive_suite.Spec.Enable.PrometheusConnector {
+		log.Info("Starting PrometheusConnector")
+
+		config_map, err := kclient.NewConfigMap(assets.MustNewAssetReader(PrometheusConfigMap))
+		if err != nil {
+			log.Error(err, "initializing Prometheus ConfigMap failed")
+		}
+		config_map.Namespace = skydive_suite.Spec.Namespace
+
+		err = kclient_instance.CreateOrUpdateConfigMap(config_map)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Prometheus ConfigMap creation has failed")
+		}
+
+		dep, err := kclient.NewDeployment(assets.MustNewAssetReader(PrometheusDeployment))
+		if err != nil {
+			log.Error(err, "initializing Prometheus Deployment failed")
+			return ctrl.Result{}, errors.Wrap(err, "initializing Prometheus Deployment failed")
+		}
+		dep.Namespace = skydive_suite.Spec.Namespace
+		err = kclient_instance.CreateOrUpdateDeployment(dep)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Prometheus deployment creation has failed")
+		}
+
+		svc, err := kclient.NewService(assets.MustNewAssetReader(PrometheusService))
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "initializing Prometheus Service failed")
+		}
+		svc.Namespace = skydive_suite.Spec.Namespace
+
+		err = kclient_instance.CreateOrUpdateService(svc)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Prometheus Service creation has failed")
+		}
+		if skydive_suite.Spec.OpenShiftDeployment {
+			route, err := kclient.NewRoute(assets.MustNewAssetReader(PrometheusRoute))
+			if err != nil {
+				log.Error(err, "initializing Prometheus Route failed")
+			}
+			route.Namespace = skydive_suite.Spec.Namespace
+
+			err = kclient_instance.CreateRouteIfNotExists(route)
+			if err != nil {
+				log.Error(err, "Prometheus Route creation has failed")
+			}
+
+			_, err = kclient_instance.WaitForRouteReady(route)
+			if err != nil {
+				log.Error(err, "waiting for Prometheus Route to become ready failed")
+			}
+		}
+
+		connector_dep, err := kclient.NewDeployment(assets.MustNewAssetReader(PrometheusConnectorDeployment))
+		if err != nil {
+			log.Error(err, "initializing Prometheus Connector Deployment failed")
+			return ctrl.Result{}, errors.Wrap(err, "initializing Prometheus Deployment failed")
+		}
+		connector_dep.Namespace = skydive_suite.Spec.Namespace
+		for index := range connector_dep.Spec.Template.Spec.Containers {
+			if connector_dep.Spec.Template.Spec.Containers[index].Name == "skydive-prometheus-connector" {
+				connector_dep.Spec.Template.Spec.Containers[index].Env =
+					skydive_suite.Spec.PrometheusConnector.Deployment.Env
+				break
+			}
+		}
+
+		err = kclient_instance.CreateOrUpdateDeployment(connector_dep)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Prometheus Connector deployment creation has failed")
+		}
+
+		connector_svc, err := kclient.NewService(assets.MustNewAssetReader(PrometheusConnectorService))
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "initializing Prometheus Service failed")
+		}
+		connector_svc.Namespace = skydive_suite.Spec.Namespace
+
+		err = kclient_instance.CreateOrUpdateService(connector_svc)
+		if err != nil {
+			return ctrl.Result{}, errors.Wrap(err, "Prometheus Service creation has failed")
+		}
+
+		if skydive_suite.Spec.OpenShiftDeployment {
+			connector_route, err := kclient.NewRoute(assets.MustNewAssetReader(PrometheusConnectorRoute))
+			if err != nil {
+				log.Error(err, "initializing Prometheus Route failed")
+			}
+			connector_route.Namespace = skydive_suite.Spec.Namespace
+
+			err = kclient_instance.CreateRouteIfNotExists(connector_route)
+			if err != nil {
+				log.Error(err, "Prometheus Route creation has failed")
+			}
+
+			_, err = kclient_instance.WaitForRouteReady(connector_route)
+			if err != nil {
+				log.Error(err, "waiting for Prometheus Route to become ready failed")
+			}
+		}
+	}
+
 	return ctrl.Result{}, nil
 }
 
+// SetupWithManager sets up the controller with the Manager.
 func (r *SkydiveReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&skydivev1.Skydive{}).
+		For(&skydivegroupv1.Skydive{}).
 		Complete(r)
 }
