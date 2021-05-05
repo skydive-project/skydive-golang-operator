@@ -86,14 +86,12 @@ func New(cfg *rest.Config, version string, namespace, namespaceSelector string) 
 func (c *KClient) InitializeNamespace(namespace_name string) error {
 	ns := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespace_name}}
 
-	err := c.kclient.CoreV1().Namespaces().Delete(context.TODO(), namespace_name, metav1.DeleteOptions{})
-	err = c.WaitForNamespaceDeletionRollout(namespace_name)
-	if err != nil {
-		return err
+	_, err := c.kclient.CoreV1().Namespaces().Get(context.TODO(), namespace_name, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		_, err = c.kclient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+		return c.WaitForNamespaceCreationRollout(namespace_name)
 	}
-
-	_, err = c.kclient.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
-	return c.WaitForNamespaceCreationRollout(namespace_name)
+	return nil
 }
 
 func (c *KClient) WaitForNamespaceDeletionRollout(namespace_name string) error {
@@ -296,6 +294,14 @@ func (c *KClient) WaitForRouteReady(r *routev1.Route) (string, error) {
 	return host, nil
 }
 
+func (c *KClient) DeleteRoute(r *routev1.Route) error {
+	err := c.osrclient.RouteV1().Routes(r.GetNamespace()).Delete(context.TODO(), r.GetName(), metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		return nil
+	}
+	return err
+}
+
 func NewService(manifest io.Reader) (*v1.Service, error) {
 	s := v1.Service{}
 	err := yaml.NewYAMLOrJSONDecoder(manifest, 100).Decode(&s)
@@ -306,31 +312,45 @@ func NewService(manifest io.Reader) (*v1.Service, error) {
 	return &s, nil
 }
 
-func (c *KClient) CreateOrUpdateService(svc *v1.Service) error {
+func (c *KClient) CreateNewService(svc *v1.Service) error {
 	sclient := c.kclient.CoreV1().Services(svc.GetNamespace())
-	existing, err := sclient.Get(context.TODO(), svc.GetName(), metav1.GetOptions{})
+	_, err := sclient.Get(context.TODO(), svc.GetName(), metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
 		_, err = sclient.Create(context.TODO(), svc, metav1.CreateOptions{})
 		return errors.Wrap(err, "creating Service object failed")
 	}
+
+	err = c.DeleteService(svc)
 	if err != nil {
-		return errors.Wrap(err, "retrieving Service object failed")
+		return errors.Wrap(err, "Service deletion has failed")
 	}
 
-	required := svc.DeepCopy()
-	required.ResourceVersion = existing.ResourceVersion
-	if required.Spec.Type == v1.ServiceTypeClusterIP {
-		required.Spec.ClusterIP = existing.Spec.ClusterIP
-	}
+	c.WaitForServiceDeletionRollout(svc.Namespace, svc.Name)
 
-	if reflect.DeepEqual(required.Spec, existing.Spec) {
+	_, err = sclient.Create(context.TODO(), svc, metav1.CreateOptions{})
+	return errors.Wrap(err, "creating Service object failed")
+}
+
+func (c *KClient) DeleteService(svc *v1.Service) error {
+	err := c.kclient.CoreV1().Services(svc.Namespace).Delete(context.TODO(), svc.GetName(), metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
 		return nil
 	}
 
-	mergeMetadata(&required.ObjectMeta, existing.ObjectMeta)
+	return err
+}
 
-	_, err = sclient.Update(context.TODO(), required, metav1.UpdateOptions{})
-	return errors.Wrap(err, "updating Service object failed")
+func (c *KClient) WaitForServiceDeletionRollout(namespace_name string, service_name string) error {
+	if err := wait.Poll(time.Second, createTimeout, func() (bool, error) {
+		_, err := c.kclient.CoreV1().Services(namespace_name).Get(context.TODO(), service_name, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			return true, nil
+		}
+		return false, err
+	}); err != nil {
+		return errors.Wrapf(err, "waiting for Service Deletion Rollout of %s", namespace_name)
+	}
+	return nil
 }
 
 func NewDaemonSet(manifest io.Reader) (*appsv1.DaemonSet, error) {
@@ -461,4 +481,13 @@ func (c *KClient) CreateOrUpdateConfigMap(cm *v1.ConfigMap) error {
 
 	_, err = cmClient.Update(context.TODO(), required, metav1.UpdateOptions{})
 	return errors.Wrap(err, "updating ConfigMap object failed")
+}
+
+func (c *KClient) DeleteConfigMap(cm *v1.ConfigMap) error {
+	err := c.kclient.CoreV1().ConfigMaps(cm.GetNamespace()).Delete(context.TODO(), cm.GetName(), metav1.DeleteOptions{})
+	if apierrors.IsNotFound(err) {
+		return nil
+	}
+
+	return err
 }

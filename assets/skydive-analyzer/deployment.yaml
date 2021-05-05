@@ -56,3 +56,10 @@ spec:
   test: false
   triggers:
     - type: ConfigChangea
+
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: true
+      blockOwnerDeletion: true
+      kind: Skydive
+      name: skydive-sample

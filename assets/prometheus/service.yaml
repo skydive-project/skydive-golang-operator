@@ -15,3 +15,9 @@ spec:
     tier: prometheus-connector
   sessionAffinity: None
   type: NodePort
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: false
+      blockOwnerDeletion: false
+      kind: Skydive
+      name: skydive-sample

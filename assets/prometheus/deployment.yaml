@@ -42,3 +42,9 @@ spec:
             defaultMode: 420
             name: prom-config-skydive
           name: prom-config-skydive-volume
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: true
+      blockOwnerDeletion: false
+      kind: Skydive
+      name: skydive-sample

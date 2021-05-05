@@ -14,3 +14,11 @@ data:
       - job_name: 'skydive-openshift-stats'
         static_configs:
           - targets: ['skydive-prometheus-connector:9100']
+
+spec:
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: true
+      blockOwnerDeletion: false
+      kind: Skydive
+      name: skydive-sample

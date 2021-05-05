@@ -1,4 +1,5 @@
 # Skydive Agents  (DaemonSet)
+# Skydive Agents  (DaemonSet)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -72,3 +73,9 @@ spec:
         - hostPath:
             path: /var/lib/origin
           name: lib-origin
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: true
+      blockOwnerDeletion: true
+      kind: Skydive
+      name: skydive-sample

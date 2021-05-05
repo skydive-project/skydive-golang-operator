@@ -12,3 +12,9 @@ spec:
     name: skydive-analyzer
     weight: 100
   wildcardPolicy: None
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: false
+      blockOwnerDeletion: true
+      kind: Skydive
+      name: skydive-sample

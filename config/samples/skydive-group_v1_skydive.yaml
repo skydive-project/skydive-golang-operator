@@ -2,6 +2,7 @@ apiVersion: skydive-group.example.com/v1
 kind: Skydive
 metadata:
   name: skydive-sample
+  namespace: skydive
 spec:
   namespace: skydive
   openShiftDeployment: false
@@ -9,8 +10,8 @@ spec:
     analyzer: true
     agents: true
     route: false
-    flowExporter: true
-    prometheusConnector: true
+    flowExporter: false
+    prometheusConnector: false
 
   agents:
     daemonSet:

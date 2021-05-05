@@ -22,4 +22,9 @@ spec:
         - image: skydive/skydive-flow-exporter
           imagePullPolicy: Always
           name: skydive-flow-exporter
-
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: false
+      blockOwnerDeletion: true
+      kind: Skydive
+      name: skydive-sample
