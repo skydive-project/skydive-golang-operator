@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.49
+VERSION ?= 0.0.50
 
 # CHANNELS define the bundle channels used in the bundle. 
 # Add a new lisne here if you would like to change its default config. (E.g CHANNELS = "preview,fast,stable")
@@ -26,10 +26,10 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # BUNDLE_IMG defines the image:tag used for the bundle. 
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= docker.io/xxmrxx1/skydive-operator-bundle:$(VERSION)
+BUNDLE_IMG ?= docker.io/skydive/skydive-operator-bundle:$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= docker.io/xxmrxx1/skydive-operator:$(VERSION)
+IMG ?= docker.io/skydive/skydive-operator:$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
