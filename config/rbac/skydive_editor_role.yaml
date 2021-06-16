@@ -5,7 +5,7 @@ metadata:
   name: skydive-editor-role
 rules:
 - apiGroups:
-  - skydive.example.com
+  - skydive-group.example.com
   resources:
   - skydives
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - skydive.example.com
+  - skydive-group.example.com
   resources:
   - skydives/status
   verbs:

@@ -21,4 +21,10 @@ spec:
           ports:
             - containerPort: 9100
               protocol: TCP
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: false
+      blockOwnerDeletion: true
+      kind: Skydive
+      name: skydive-sample
 

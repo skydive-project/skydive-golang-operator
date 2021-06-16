@@ -5,7 +5,7 @@ metadata:
   name: skydive-viewer-role
 rules:
 - apiGroups:
-  - skydive.example.com
+  - skydive-group.example.com
   resources:
   - skydives
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - skydive.example.com
+  - skydive-group.example.com
   resources:
   - skydives/status
   verbs:

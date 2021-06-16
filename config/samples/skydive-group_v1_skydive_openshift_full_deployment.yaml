@@ -1,0 +1,71 @@
+apiVersion: skydive.example.com/v1
+kind: Skydive
+metadata:
+  name: skydive-sample
+  namespace: skydive
+spec:
+  namespace: skydive
+  openShiftDeployment: true
+  enable:
+    analyzer: true
+    agents: true
+    route: true
+    flowExporter: true
+    prometheusConnector: true
+  agents:
+    daemonSet:
+      env:
+        - name: SKYDIVE_ANALYZERS
+          value: $(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ${SKYDIVE_LOGGING_LEVEL}
+        - name: SKYDIVE_AGENT_TOPOLOGY_PROBES
+          value: "netlink netns ovsdb runc"
+        - name: SKYDIVE_AGENT_TOPOLOGY_RUNC_RUN_PATH
+          value: "/run/containerd/runc /run/runc /run/runc-ctrs"
+
+  analyzer:
+    deployment:
+      env:
+        - name: SKYDIVE_ANALYZER_FLOW_BACKEND
+          value: memory
+        - name: SKYDIVE_ANALYZER_TOPOLOGY_BACKEND
+          value: memory
+        - name: SKYDIVE_ANALYZER_TOPOLOGY_PROBES
+          value: "k8s ovn"
+        - name: SKYDIVE_ANALYZER_TOPOLOGY_K8S_PROBES
+          value: "cluster namespace node pod container service deployment"
+        - name: SKYDIVE_UI
+          value: '{"theme":"light","k8s_enabled":"true","topology": {"favorites":{"infrastructure":"G.V().Has(\"Manager\", Without(\"k8s\"))","kubernetes":"G.V().Has(\"Manager\",\"k8s\")"},"default_filter":"infrastructure"}}'
+        - name: SKYDIVE_ANALYZER_TOPOLOGY_FABRIC
+          value: 'TOR1->*[Type=host]/eth0 TOR1->*[Type=host]/eth1 TOR1->*[Type=host]/ens1 TOR1->*[Type=host]/ens2 TOR1->*[Type=host]/ens3'
+        - name: SKYDIVE_ANALYZER_STARTUP_CAPTURE_GREMLIN
+          value: 'G.V().Has("Type" , "device", "Name", Regex("eth0|ens1|ens2|ens3"))'
+        - name: SKYDIVE_ETCD_LISTEN
+          value: 0.0.0.0:12379
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+
+  flowExporter:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: ERROR
+        - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
+          value: ws://$(SKYDIVE_ANALYZER_SERVICE_HOST):$(SKYDIVE_ANALYZER_SERVICE_PORT_API)/ws/subscriber/flow
+
+  prometheusConnector:
+    deployment:
+      env:
+        - name: SKYDIVE_LOGGING_LEVEL
+          value: DEBUG
+        - name: SKYDIVE_PIPELINE_SUBSCRIBER_URL
+          value: ws://skydive-analyzer:8082/ws/subscriber/flow
+        - name: SKYDIVE_PIPELINE_MANGLE
+          value: none
+        - name: SKYDIVE_PIPELINE_TRANSFORM_TYPE
+          value: none
+        - name: SKYDIVE_PIPELINE_STORE_TYPE
+          value: prom_sky_con
+        - name: SKYDIVE_PIPELINE_STORE_PROM_SKY_CON_PORT
+          value: "9100"

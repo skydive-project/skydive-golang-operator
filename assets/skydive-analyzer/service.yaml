@@ -31,3 +31,9 @@ spec:
   selector:
     app: skydive
     tier: analyzer
+  ownerReferences:
+    - apiVersion: skydive-group.example.com/v1
+      controller: false
+      blockOwnerDeletion: false
+      kind: Skydive
+      name: skydive-sample
